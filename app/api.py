@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from .db import SessionLocal
 from .crud import create_car, get_cars, create_mechanic, get_mechanics, create_order, get_orders
 
@@ -15,7 +16,14 @@ def get_db():
 # Автомобили
 @router.post("/cars/")
 def create_new_car(brand: str, license_plate: str, year: int, owner_name: str, db: Session = Depends(get_db)):
-    return create_car(db, brand=brand, license_plate=license_plate, year=year, owner_name=owner_name)
+    try:
+        return create_car(db, brand=brand, license_plate=license_plate, year=year, owner_name=owner_name)
+    except IntegrityError:
+        db.rollback()  # Откат изменений при ошибке
+        raise HTTPException(
+            status_code=400,
+            detail=f"Car with license plate '{license_plate}' already exists.",
+        )
 
 @router.get("/cars/")
 def read_cars(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
@@ -24,7 +32,14 @@ def read_cars(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 # Автомеханики
 @router.post("/mechanics/")
 def create_new_mechanic(name: str, experience: int, rank: int, db: Session = Depends(get_db)):
-    return create_mechanic(db, name=name, experience=experience, rank=rank)
+    try:
+        return create_mechanic(db, name=name, experience=experience, rank=rank)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail=f"Mechanic with name '{name}' might already exist or violates constraints.",
+        )
 
 @router.get("/mechanics/")
 def read_mechanics(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
@@ -33,15 +48,22 @@ def read_mechanics(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)
 # Заказы
 @router.post("/orders/")
 def create_new_order(cost: float, issue_date, work_type: str, planned_end_date, car_id: int, mechanic_id: int, db: Session = Depends(get_db)):
-    return create_order(
-        db,
-        cost=cost,
-        issue_date=issue_date,
-        work_type=work_type,
-        planned_end_date=planned_end_date,
-        car_id=car_id,
-        mechanic_id=mechanic_id,
-    )
+    try:
+        return create_order(
+            db,
+            cost=cost,
+            issue_date=issue_date,
+            work_type=work_type,
+            planned_end_date=planned_end_date,
+            car_id=car_id,
+            mechanic_id=mechanic_id,
+        )
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="Order violates constraints. Please check car_id or mechanic_id.",
+        )
 
 @router.get("/orders/")
 def read_orders(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
