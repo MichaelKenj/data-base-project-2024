@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.models import Car
 from .models import Car, Mechanic, Order
+from . import models
 
 # Автомобили
 def create_car(db: Session, brand: str, license_plate: str, year: int, owner_name: str):
@@ -51,3 +52,14 @@ def create_order(db: Session, cost: float, issue_date, work_type: str, planned_e
 
 def get_orders(db: Session, skip: int = 0, limit: int = 10):
     return db.query(Order).offset(skip).limit(limit).all()
+  
+def get_user(db: Session, user_id: int):
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
+def create_user(db: Session, name: str, email: str, hashed_password: str):
+    user = models.User(name=name, email=email, hashed_password=hashed_password)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+

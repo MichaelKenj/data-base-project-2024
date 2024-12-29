@@ -12,5 +12,4 @@ Base.metadata.create_all(bind=engine)
 def read_root():
     return {"message": "API is running!"}
 
-
 app.include_router(router)
