@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker
 
 DATABASE_URL = "postgresql://michaelKen:michael2004@83.149.198.142:5419/MichaelKenDB"
 
-
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
