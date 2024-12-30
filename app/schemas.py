@@ -1,8 +1,7 @@
 from pydantic import BaseModel
-from typing import Optional
 from datetime import date
 
-# Схемы для создания записей
+# Схемы для создания объектов
 class CarCreate(BaseModel):
     brand: str
     license_plate: str
