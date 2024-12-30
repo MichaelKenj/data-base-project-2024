@@ -9,7 +9,8 @@ class Car(Base):
     license_plate = Column(String, unique=True, nullable=False, index=True)  # Добавлено nullable=False
     year = Column(Integer, nullable=False)  # Добавлено nullable=False
     owner_name = Column(String, nullable=False)  # Добавлено nullable=False
-
+    color = Column(String, nullable=True)
+    
     # Связь с заказами
     orders = relationship("Order", back_populates="car")
 
