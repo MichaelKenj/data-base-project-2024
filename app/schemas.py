@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import date
+from typing import Optional
 
 # Схемы для создания объектов
 class CarCreate(BaseModel):
@@ -7,6 +8,7 @@ class CarCreate(BaseModel):
     license_plate: str
     year: int
     owner_name: str
+    color: Optional[str] = None
 
 class MechanicCreate(BaseModel):
     name: str
@@ -28,6 +30,7 @@ class CarResponse(BaseModel):
     license_plate: str
     year: int
     owner_name: str
+    color: Optional[str] = None
 
     class Config:
         orm_mode = True

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Form, Body
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from typing import Optional
 from .db import SessionLocal
 from .crud import create_car, create_mechanic, create_order, get_cars, get_mechanics, get_orders
 from .schemas import CarCreate, CarResponse, MechanicCreate, MechanicResponse, OrderCreate, OrderResponse
@@ -22,10 +23,11 @@ def create_new_car_form(
     license_plate: str = Form(...),
     year: int = Form(...),
     owner_name: str = Form(...),
+    color: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     try:
-        return create_car(db, brand=brand, license_plate=license_plate, year=year, owner_name=owner_name)
+        return create_car(db, brand=brand, license_plate=license_plate, year=year, owner_name=owner_name, color=color)
     except IntegrityError:
         db.rollback()
         raise HTTPException(
@@ -40,7 +42,7 @@ def create_new_car_json(
     db: Session = Depends(get_db)
 ):
     try:
-        return create_car(db, brand=car.brand, license_plate=car.license_plate, year=car.year, owner_name=car.owner_name)
+        return create_car(db, brand=car.brand, license_plate=car.license_plate, year=car.year, owner_name=car.owner_name, color=car.color)
     except IntegrityError:
         db.rollback()
         raise HTTPException(
