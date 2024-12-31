@@ -17,10 +17,17 @@ def fetch_data(endpoint):
         return []
 
 def update_treeview(treeview, columns, data):
+    # Проверяем, что данные приходят корректно
+    print(f"Обновление данных: {data}")
+
     for row in treeview.get_children():
         treeview.delete(row)
+
     for row in data:
+        # Убедитесь, что данные приходят с правильными ключами
         treeview.insert("", "end", values=[row.get(col, "N/A") for col in columns])
+
+
 
 def create_item(endpoint, payload):
     try:
@@ -54,13 +61,25 @@ def update_item(endpoint, item_id, payload):
 
 def search_item(endpoint, search_key, search_value, treeview, columns):
     try:
-        response = requests.get(f"{BASE_URL}/{endpoint}/search", params={search_key: search_value})
+        # Параметры для запроса
+        params = {search_key: search_value}
+        # Проверяем, что параметры верные
+        print(f"Параметры запроса: {params}")
+
+        response = requests.get(f"{BASE_URL}/{endpoint}/search", params=params)
+
         if response.status_code == 200:
-            update_treeview(treeview, columns, response.json())
+            data = response.json()
+            print(f"Данные, полученные от сервера: {data}")
+            if len(data) == 0:
+                messagebox.showinfo("Результат", "Ничего не найдено.")
+            update_treeview(treeview, columns, data)
         else:
             messagebox.showerror("Ошибка", f"Ошибка {response.status_code}: {response.text}")
     except Exception as e:
         messagebox.showerror("Ошибка", f"Не удалось выполнить поиск: {e}")
+
+
 
 def create_tab(tab, endpoint, columns):
     treeview = ttk.Treeview(tab, columns=columns, show="headings")
@@ -132,7 +151,7 @@ def create_tab(tab, endpoint, columns):
         def submit():
             payload = {col: entry.get() for col, entry in entries.items()}
             update_item(endpoint, item_id, payload)
-            load_data()
+            load_data()  # Обновление данных после редактирования
             entry_window.destroy()
 
         button_submit = tk.Button(entry_window, text="Сохранить", command=submit)
@@ -156,7 +175,12 @@ def create_tab(tab, endpoint, columns):
         entry_value.pack(side="left", expand=True, fill="x")
 
         def submit():
-            search_item(endpoint, combo_key.get(), entry_value.get(), treeview, columns)
+            search_key = combo_key.get()
+            search_value = entry_value.get()
+            if not search_key or not search_value:  # Проверка пустых значений
+                messagebox.showwarning("Ошибка", "Заполните все поля для поиска")
+                return
+            search_item(endpoint, search_key, search_value, treeview, columns)
             search_window.destroy()
 
         button_submit = tk.Button(search_window, text="Поиск", command=submit)

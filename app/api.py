@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Form, Body
 from fastapi import Query
 from datetime import date
 from sqlalchemy.orm import Session
+from .models import Car, Mechanic, Order
 from sqlalchemy.exc import IntegrityError
 from typing import Optional
 from .db import SessionLocal
@@ -58,10 +59,13 @@ def create_new_car_json(
             detail=f"Car with license plate '{car.license_plate}' already exists.",
         )
 
-@router.get("/cars/search/")
-def search_cars_api(query: str = Query(...), db: Session = Depends(get_db)):
-    cars = search_cars(db, query=query)
-    return {"result": cars}
+@router.get("/cars/search")
+def search_cars_api(search_key: str, search_value: str, db: Session = Depends(get_db)):
+    if search_key == "brand":
+        result = db.query(Car).filter(Car.brand == search_value).all()
+    else:
+        result = []
+    return result
 
 @router.delete("/cars/{car_id}/")
 def delete_car_api(car_id: int, db: Session = Depends(get_db)):

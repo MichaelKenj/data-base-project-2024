@@ -38,8 +38,8 @@ class Order(Base):
     work_type = Column(String, nullable=False)  # Добавлено nullable=False
     planned_end_date = Column(Date, nullable=False)  # Добавлено nullable=False
     car_id = Column(Integer, ForeignKey("cars.id"), nullable=False)  # Добавлено nullable=False
-    mechanic_id = Column(Integer, ForeignKey("mechanics.id"), nullable=False)  # Добавлено nullable=False
+    mechanic_id = Column(Integer, ForeignKey("mechanics.id"), nullable=True)  # Изменено на nullable=True
 
     # Связь с другими таблицами
     car = relationship("Car", back_populates="orders")
-    mechanic = relationship("Mechanic", back_populates="orders")
+    mechanic = relationship("Mechanic", back_populates="orders", uselist=False)  # Убедитесь, что uselist=False если механик только один для каждого заказа

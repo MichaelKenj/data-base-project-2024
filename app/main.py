@@ -31,4 +31,5 @@ def get_mechanics(db: Session = Depends(get_db)):
     return mechanics
 
 
+
 app.include_router(router)
