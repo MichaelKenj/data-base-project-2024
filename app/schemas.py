@@ -47,9 +47,9 @@ class MechanicResponse(BaseModel):
 class OrderResponse(BaseModel):
     id: int
     cost: float
-    issue_date: date
+    issue_date: date # Используем Pydantic-совместимый тип date
     work_type: str
-    planned_end_date: date
+    planned_end_date: date  # Также здесь используем date
     car_id: int
     mechanic_id: int
 
