@@ -7,3 +7,11 @@ DATABASE_URL = "postgresql://michaelKen:michael2004@83.149.198.142:5419/MichaelK
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+# Функция для получения сессии базы данных
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
