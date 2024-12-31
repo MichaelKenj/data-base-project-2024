@@ -1,10 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, Form, Body
+from fastapi import Query
+from datetime import date
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import Optional
 from .db import SessionLocal
-from .crud import create_car, create_mechanic, create_order, get_cars, get_mechanics, get_orders
 from .schemas import CarCreate, CarResponse, MechanicCreate, MechanicResponse, OrderCreate, OrderResponse
+from .crud import (
+    create_car, create_mechanic, create_order,
+    get_cars, get_mechanics, get_orders,
+    search_cars, search_mechanics, search_orders, 
+    delete_car, delete_mechanic, delete_order,
+    edit_car, edit_mechanic, edit_order 
+)
 
 router = APIRouter()
 
@@ -16,7 +24,8 @@ def get_db():
     finally:
         db.close()
 
-# Создание автомобиля через форму
+#----------------------------------CAR-----------------------------------
+#------------------------------------------------------------------------
 @router.post("/cars/form/", response_model=CarResponse)
 def create_new_car_form(
     brand: str = Form(...),
@@ -35,7 +44,6 @@ def create_new_car_form(
             detail=f"Car with license plate '{license_plate}' already exists.",
         )
 
-# Создание автомобиля через JSON
 @router.post("/cars/", response_model=CarResponse)
 def create_new_car_json(
     car: CarCreate = Body(...),  # Используем Body для JSON
@@ -50,7 +58,39 @@ def create_new_car_json(
             detail=f"Car with license plate '{car.license_plate}' already exists.",
         )
 
-# Создание механика через форму
+@router.get("/cars/search/")
+def search_cars_api(query: str = Query(...), db: Session = Depends(get_db)):
+    cars = search_cars(db, query=query)
+    return {"result": cars}
+
+@router.delete("/cars/{car_id}/")
+def delete_car_api(car_id: int, db: Session = Depends(get_db)):
+    result = delete_car(db, car_id=car_id)
+    return result
+
+@router.put("/cars/{car_id}/", response_model=CarResponse)
+def edit_car_api(
+    car_id: int, 
+    brand: Optional[str] = None, 
+    license_plate: Optional[str] = None, 
+    year: Optional[int] = None, 
+    owner_name: Optional[str] = None, 
+    color: Optional[str] = None, 
+    db: Session = Depends(get_db)
+):
+    try:
+        return edit_car(db, car_id, brand, license_plate, year, owner_name, color)
+    except HTTPException as e:
+        raise e
+
+@router.get("/cars/", response_model=list[CarResponse])
+def read_cars(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return get_cars(db, skip=skip, limit=limit)
+#------------------------------------------------------------------------
+
+
+#-------------------------------MECHANIC---------------------------------
+#------------------------------------------------------------------------
 @router.post("/mechanics/form/", response_model=MechanicResponse)
 def create_new_mechanic_form(
     name: str = Form(...),
@@ -67,7 +107,6 @@ def create_new_mechanic_form(
             detail=f"Mechanic with name '{name}' already exists.",
         )
 
-# Создание механика через JSON
 @router.post("/mechanics/", response_model=MechanicResponse)
 def create_new_mechanic_json(
     mechanic: MechanicCreate = Body(...),  # Используем Body для JSON
@@ -82,7 +121,35 @@ def create_new_mechanic_json(
             detail=f"Mechanic with name '{mechanic.name}' already exists.",
         )
 
-# Создание заказа через форму
+@router.get("/mechanics/search/")
+def search_mechanics_route(name: str, db: Session = Depends(get_db)):
+    return search_mechanics(db, name=name)
+
+@router.delete("/mechanics/{mechanic_id}")
+def delete_mechanic_route(mechanic_id: int, db: Session = Depends(get_db)):
+    return delete_mechanic(db, mechanic_id=mechanic_id)
+
+@router.put("/mechanics/{mechanic_id}/", response_model=MechanicResponse)
+def edit_mechanic_api(
+    mechanic_id: int, 
+    name: Optional[str] = None, 
+    experience: Optional[int] = None, 
+    rank: Optional[int] = None, 
+    db: Session = Depends(get_db)
+):
+    try:
+        return edit_mechanic(db, mechanic_id, name, experience, rank)
+    except HTTPException as e:
+        raise e
+
+@router.get("/mechanics/", response_model=list[MechanicResponse])
+def read_mechanics(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return get_mechanics(db, skip=skip, limit=limit)
+#------------------------------------------------------------------------
+
+
+#---------------------------------ORDER----------------------------------
+#------------------------------------------------------------------------
 @router.post("/orders/form/", response_model=OrderResponse)
 def create_new_order_form(
     cost: float = Form(...),
@@ -105,7 +172,6 @@ def create_new_order_form(
             detail="Order violates constraints. Please check car_id or mechanic_id.",
         )
 
-# Создание заказа через JSON
 @router.post("/orders/", response_model=OrderResponse)
 def create_new_order_json(
     order: OrderCreate = Body(...),  # Используем Body для JSON
@@ -123,17 +189,32 @@ def create_new_order_json(
             detail="Order violates constraints. Please check car_id or mechanic_id.",
         )
 
-# Чтение автомобилей
-@router.get("/cars/", response_model=list[CarResponse])
-def read_cars(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return get_cars(db, skip=skip, limit=limit)
+@router.get("/orders/search/")
+def search_orders_route(work_type: str, db: Session = Depends(get_db)):
+    return search_orders(db, work_type=work_type)
 
-# Чтение механиков
-@router.get("/mechanics/", response_model=list[MechanicResponse])
-def read_mechanics(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return get_mechanics(db, skip=skip, limit=limit)
+@router.delete("/orders/{order_id}")
+def delete_order_route(order_id: int, db: Session = Depends(get_db)):
+    return delete_order(db, order_id=order_id)
 
-# Чтение заказов
+@router.put("/orders/{order_id}/", response_model=OrderResponse)
+def edit_order_api(
+    order_id: int, 
+    cost: Optional[float] = None, 
+    issue_date: Optional[date] = None, 
+    work_type: Optional[str] = None, 
+    planned_end_date: Optional[date] = None, 
+    car_id: Optional[int] = None, 
+    mechanic_id: Optional[int] = None, 
+    db: Session = Depends(get_db)
+):
+    try:
+        return edit_order(db, order_id, cost, issue_date, work_type, planned_end_date, car_id, mechanic_id)
+    except HTTPException as e:
+        raise e
+
+
 @router.get("/orders/", response_model=list[OrderResponse])
-def read_orders(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+def read_orders(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return get_orders(db, skip=skip, limit=limit)
+#------------------------------------------------------------------------
