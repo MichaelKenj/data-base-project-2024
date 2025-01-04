@@ -84,10 +84,18 @@ The project demonstrates the use of modern Python technologies such as **FastAPI
    ```bash
    git clone https://github.com/MichaelKenj/data-base-project-2024.git
    cd data-base-project-2024/
-   pip install "requirements.txt"
+2. **Create venv**
+   ```bash
+   python -m venv env
+   source env/bin/activate  # On Windows: .env\Scripts\activate
+3. **Installing libs**
+   ```bash
+   pip install -r requirements.txt
+4. **Run the server**
+   ```bash
    uvicorn app.main:app --reload
    python ui/ui.py 
-2. **Watch Result**
+3. **Watch Result**
    ```bash
-   http://127.0.0.1:8000
+   http://127.0.0.1:8000/docs
    
