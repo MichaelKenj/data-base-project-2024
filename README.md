@@ -82,5 +82,7 @@ The project demonstrates the use of modern Python technologies such as **FastAPI
 
 1. **Clone the Repository**
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:MichaelKenj/data-base-project-2024.git
    cd <repository-directory>
+   uvicorn app.main:app --reload
+   python .\ui\ui.py 
