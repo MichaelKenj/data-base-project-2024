@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Form, Body
 from fastapi import Query
 from datetime import date
 from sqlalchemy.orm import Session
+from .models import Car, Mechanic, Order
 from sqlalchemy.exc import IntegrityError
 from typing import Optional
 from .db import SessionLocal
@@ -16,7 +17,6 @@ from .crud import (
 
 router = APIRouter()
 
-# Dependency для получения сессии базы данных
 def get_db():
     db = SessionLocal()
     try:
@@ -46,7 +46,7 @@ def create_new_car_form(
 
 @router.post("/cars/", response_model=CarResponse)
 def create_new_car_json(
-    car: CarCreate = Body(...),  # Используем Body для JSON
+    car: CarCreate = Body(...),  
     db: Session = Depends(get_db)
 ):
     try:
@@ -58,10 +58,20 @@ def create_new_car_json(
             detail=f"Car with license plate '{car.license_plate}' already exists.",
         )
 
-@router.get("/cars/search/")
-def search_cars_api(query: str = Query(...), db: Session = Depends(get_db)):
-    cars = search_cars(db, query=query)
-    return {"result": cars}
+@router.get("/cars/search")
+def search_cars_api(
+    search_key: str,
+    search_value: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        #Trying find a car
+        results = search_cars(db, search_key, search_value)
+        return {"results": results}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.delete("/cars/{car_id}/")
 def delete_car_api(car_id: int, db: Session = Depends(get_db)):
@@ -109,7 +119,7 @@ def create_new_mechanic_form(
 
 @router.post("/mechanics/", response_model=MechanicResponse)
 def create_new_mechanic_json(
-    mechanic: MechanicCreate = Body(...),  # Используем Body для JSON
+    mechanic: MechanicCreate = Body(...),  
     db: Session = Depends(get_db)
 ):
     try:
@@ -174,7 +184,7 @@ def create_new_order_form(
 
 @router.post("/orders/", response_model=OrderResponse)
 def create_new_order_json(
-    order: OrderCreate = Body(...),  # Используем Body для JSON
+    order: OrderCreate = Body(...), 
     db: Session = Depends(get_db)
 ):
     try:

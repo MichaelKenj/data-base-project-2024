@@ -6,7 +6,6 @@ from .api import router
 
 app = FastAPI()
 
-# Создать таблицы, если их нет
 Base.metadata.create_all(bind=engine)
 
 @app.get("/")
@@ -24,11 +23,9 @@ def get_cars(db: Session = Depends(get_db)):
     return cars
 
 
-# Эндпоинт для получения всех механиков
 @app.get("/mechanics/")
 def get_mechanics(db: Session = Depends(get_db)):
     mechanics = db.query(Mechanic).all()
     return mechanics
-
 
 app.include_router(router)
