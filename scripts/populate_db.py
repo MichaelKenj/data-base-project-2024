@@ -71,15 +71,14 @@ def populate_cars_json():
 
     for car in cars:
         response = requests.post(
-            f"{BASE_URL}/cars/",  # Эндпоинт для JSON
-            json=car  # Отправляем данные как JSON
+            f"{BASE_URL}/cars/",
+            json=car
         )
         if response.status_code == 200:
             print("Car added:", response.json())
         else:
             print("Error:", response.status_code, response.text)
 
-# Пример для механиков и заказов (аналогично для каждого типа данных)
 def populate_mechanics():
     mechanics = [
   {"name": "Alex", "experience": 10, "rank": 1},

@@ -80,9 +80,14 @@ The project demonstrates the use of modern Python technologies such as **FastAPI
 
 ## Setup and Installation
 
-1. **Clone the Repository**
+1. **Clone the Repository(Use Git bash)**
    ```bash
-   git clone git@github.com:MichaelKenj/data-base-project-2024.git
-   cd <repository-directory>
+   git clone https://github.com/MichaelKenj/data-base-project-2024.git
+   cd data-base-project-2024/
+   pip install "requirements.txt"
    uvicorn app.main:app --reload
-   python .\ui\ui.py 
+   python ui/ui.py 
+2. **Watch Result**
+   ```bash
+   http://127.0.0.1:8000
+   
