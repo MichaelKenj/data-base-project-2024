@@ -17,14 +17,12 @@ def fetch_data(endpoint):
         return []
 
 def update_treeview(treeview, columns, data):
-    # Проверяем, что данные приходят корректно
     print(f"Обновление данных: {data}")
 
     for row in treeview.get_children():
         treeview.delete(row)
 
     for row in data:
-        # Убедитесь, что данные приходят с правильными ключами
         treeview.insert("", "end", values=[row.get(col, "N/A") for col in columns])
 
 
@@ -61,19 +59,17 @@ def update_item(endpoint, item_id, payload):
 
 def search_item(endpoint, search_key, search_value, treeview, columns):
     try:
-        # Параметры для запроса
-        params = {search_key: search_value}
-        # Проверяем, что параметры верные
-        print(f"Параметры запроса: {params}")
+        params = {"search_key": search_key, "search_value": search_value}
+        url = f"{BASE_URL}/{endpoint}/search"  
+        print(f"Запрос: {url}, Параметры: {params}")#for debug
 
-        response = requests.get(f"{BASE_URL}/{endpoint}/search", params=params)
-
+        response = requests.get(url, params=params)
         if response.status_code == 200:
             data = response.json()
-            print(f"Данные, полученные от сервера: {data}")
             if len(data) == 0:
                 messagebox.showinfo("Результат", "Ничего не найдено.")
-            update_treeview(treeview, columns, data)
+            else:
+                update_treeview(treeview, columns, data)
         else:
             messagebox.showerror("Ошибка", f"Ошибка {response.status_code}: {response.text}")
     except Exception as e:
@@ -151,7 +147,7 @@ def create_tab(tab, endpoint, columns):
         def submit():
             payload = {col: entry.get() for col, entry in entries.items()}
             update_item(endpoint, item_id, payload)
-            load_data()  # Обновление данных после редактирования
+            load_data()  
             entry_window.destroy()
 
         button_submit = tk.Button(entry_window, text="Сохранить", command=submit)
@@ -166,7 +162,7 @@ def create_tab(tab, endpoint, columns):
 
         label_key = tk.Label(frame, text="Поле", width=15, anchor="w")
         label_key.pack(side="left")
-        combo_key = ttk.Combobox(frame, values=columns[1:])
+        combo_key = ttk.Combobox(frame, values=columns[1:])  
         combo_key.pack(side="left", expand=True, fill="x")
 
         label_value = tk.Label(frame, text="Значение", width=15, anchor="w")
@@ -177,7 +173,7 @@ def create_tab(tab, endpoint, columns):
         def submit():
             search_key = combo_key.get()
             search_value = entry_value.get()
-            if not search_key or not search_value:  # Проверка пустых значений
+            if not search_key or not search_value:  
                 messagebox.showwarning("Ошибка", "Заполните все поля для поиска")
                 return
             search_item(endpoint, search_key, search_value, treeview, columns)
@@ -185,6 +181,7 @@ def create_tab(tab, endpoint, columns):
 
         button_submit = tk.Button(search_window, text="Поиск", command=submit)
         button_submit.pack()
+
 
     button_frame = tk.Frame(tab)
     button_frame.pack(fill="x", pady=5)
@@ -197,14 +194,14 @@ def create_tab(tab, endpoint, columns):
 
     return treeview
 
-# Создание окна
+# Creating window
 window = tk.Tk()
 window.title("Управление данными")
 window.geometry("800x600")
 
 tab_control = ttk.Notebook(window)
 
-# Вкладки
+# Tabs
 cars_tab = ttk.Frame(tab_control)
 mechanics_tab = ttk.Frame(tab_control)
 orders_tab = ttk.Frame(tab_control)
@@ -215,12 +212,12 @@ tab_control.add(orders_tab, text="Заказы")
 
 tab_control.pack(expand=1, fill="both")
 
-# Колонки
+# Columns
 columns_cars = ("id", "brand", "license_plate", "year", "owner_name", "color")
 columns_mechanics = ("id", "name", "experience", "rank")
 columns_orders = ("id", "cost", "issue_date", "work_type", "planned_end_date", "car_id", "mechanic_id")
 
-# Создание вкладок
+# Creating Tabs
 create_tab(cars_tab, "cars", columns_cars)
 create_tab(mechanics_tab, "mechanics", columns_mechanics)
 create_tab(orders_tab, "orders", columns_orders)

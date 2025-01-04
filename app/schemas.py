@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from datetime import date
 from typing import Optional
 
-# Схемы для создания объектов
 class CarCreate(BaseModel):
     brand: str
     license_plate: str
@@ -23,7 +22,6 @@ class OrderCreate(BaseModel):
     car_id: int
     mechanic_id: int
 
-# Схемы для ответа
 class CarResponse(BaseModel):
     id: int
     brand: str
@@ -47,11 +45,11 @@ class MechanicResponse(BaseModel):
 class OrderResponse(BaseModel):
     id: int
     cost: float
-    issue_date: Optional[date]  # Сделано Optional для работы с пустыми значениями
-    work_type: Optional[str]  # Сделано Optional для работы с пустыми значениями
-    planned_end_date: Optional[date]  # Сделано Optional для работы с пустыми значениями
+    issue_date: Optional[date]
+    work_type: Optional[str]
+    planned_end_date: Optional[date]
     car_id: int
-    mechanic_id: Optional[int]  # Сделано Optional для работы с пустыми значениями (если механик не назначен)
+    mechanic_id: Optional[int]
 
     class Config:
         orm_mode = True

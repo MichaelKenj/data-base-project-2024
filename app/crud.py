@@ -6,11 +6,12 @@ from fastapi import HTTPException
 from typing import Optional
 from app.models import Car
 from .models import Car, Mechanic, Order
+from sqlalchemy.exc import InvalidRequestError
 from . import models
 from datetime import date
 
 
-# Функция для синхронизации последовательности
+# function for fixing accending id's
 def sync_sequence(db: Session, table_name: str, id_column: str):
     db.execute(text(f"SELECT setval(pg_get_serial_sequence('{table_name}', '{id_column}'), COALESCE(MAX({id_column}), 1), MAX({id_column}) IS NOT NULL) FROM {table_name};"))
     db.commit()
@@ -29,7 +30,7 @@ def create_car(db: Session, brand: str, license_plate: str, year: int, owner_nam
         db.add(new_car)
         db.commit()
         db.refresh(new_car)
-        sync_sequence(db, 'cars', 'id')  # Синхронизируем последовательность для cars
+        sync_sequence(db, 'cars', 'id') 
         return new_car
     except IntegrityError:
         db.rollback()
@@ -38,14 +39,20 @@ def create_car(db: Session, brand: str, license_plate: str, year: int, owner_nam
             detail=f"Car with license plate '{license_plate}' already exists."
         )
 
-def search_cars(db: Session, query: str):
-    return db.query(models.Car).filter(
-        or_(
-            models.Car.brand.ilike(f"%{query}%"),
-            models.Car.license_plate.ilike(f"%{query}%"),
-            models.Car.owner_name.ilike(f"%{query}%")
-        )
-    ).all()
+def search_cars(db: Session, search_key: str, search_value: str):
+    filters = {
+        "brand": Car.brand.ilike(f"%{search_value}%"),
+        "license_plate": Car.license_plate.ilike(f"%{search_value}%"),
+        "owner_name": Car.owner_name.ilike(f"%{search_value}%"),
+    }
+    
+    filter_condition = filters.get(search_key)
+    
+    if filter_condition is None:
+        raise ValueError(f"Unsupported search_key: {search_key}")
+    
+    query = db.query(Car).filter(filter_condition)
+    return query.all()
 
 def delete_car(db: Session, car_id: int):
     car = db.query(models.Car).filter(models.Car.id == car_id).first()
@@ -89,7 +96,7 @@ def create_mechanic(db: Session, name: str, experience: int, rank: int):
         db.add(mechanic)
         db.commit()
         db.refresh(mechanic)
-        sync_sequence(db, 'mechanics', 'id')  # Синхронизируем последовательность для mechanics
+        sync_sequence(db, 'mechanics', 'id') 
         return mechanic
     except IntegrityError:
         db.rollback()
@@ -147,7 +154,7 @@ def create_order(db: Session, cost: float, issue_date, work_type: str, planned_e
         db.add(order)
         db.commit()
         db.refresh(order)
-        sync_sequence(db, 'orders', 'id')  # Синхронизируем последовательность для orders
+        sync_sequence(db, 'orders', 'id')  
         return order
     except IntegrityError:
         db.rollback()
